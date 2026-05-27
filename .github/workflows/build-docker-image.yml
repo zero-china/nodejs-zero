@@ -2,14 +2,16 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches: [ main ]
+    branches: 
+      - main
+      - tongyue  # 👈 加上这一行！这样你在 tongyue 分支提交代码时，就会自动触发构建
     paths:
       - 'Dockerfile'
       - 'index.js'
       - 'package.json'
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch: # 👈 这一行保留得太对了！它允许你以后在网页上手动点击运行了
 
 jobs:
   build:
@@ -40,6 +42,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/zero-yue:2026
+            ghcr.io/${{ github.repository_owner }}/zero-yue:tongyue
+          # 👆 上面我帮你保留了 :2026，同时多加了一个 :tongyue 标签。这样两个名字都能访问到它！
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.description=HTTP Server
