@@ -2,13 +2,19 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches: [ main ]
+    # 允许在 main 分支以及任何以 dcdeploy 开头或完全匹配的分支上触发
+    branches: 
+      - main
+      - dcdeploy
+    # 保持路径过滤，只有这些文件变动时才构建（如果你希望任何文件变动都构建，可以删掉整个 paths 块）
     paths:
       - 'Dockerfile'
       - 'index.js'
       - 'package.json'
   pull_request:
-    branches: [ main ]
+    branches: 
+      - main
+      - dcdeploy
   workflow_dispatch:
 
 jobs:
@@ -38,8 +44,9 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
+          # 【优化提示】这里将镜像的 Tag 改为了动态的分支名，避免多分支并行时互相覆盖
           tags: |
-            ghcr.io/${{ github.repository_owner }}/zero:dcdeploy
+            ghcr.io/${{ github.repository_owner }}/zero:${{ github.ref_name }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.description=HTTP Server
