@@ -44,9 +44,9 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          # 【优化提示】这里将镜像的 Tag 改为了动态的分支名，避免多分支并行时互相覆盖
+          # 已修改：将包名独立为 zero-dcdeploy，标签固定为 latest
           tags: |
-            ghcr.io/${{ github.repository_owner }}/zero:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/zero-dcdeploy:latest
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.description=HTTP Server
