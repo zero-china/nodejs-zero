@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ashley · 童越 · Galaxy</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000814;
+}
+body { font-family: Arial, sans-serif; }
+
+#universe {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+#bg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+
+#three-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+
+.overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.name-en {
+  font-family: Georgia, serif;
+  font-size: clamp(36px, 7vw, 80px);
+  font-weight: 400;
+  letter-spacing: 18px;
+  color: rgba(255,255,255,0.92);
+  text-shadow: 0 0 40px rgba(160,200,255,0.5), 0 0 80px rgba(100,160,255,0.2);
+}
+
+.name-zh {
+  font-family: "PingFang SC", "Microsoft YaHei", serif;
+  font-size: clamp(18px, 3vw, 30px);
+  letter-spacing: 12px;
+  color: rgba(180,220,255,0.78);
+  margin-top: 12px;
+  text-shadow: 0 0 20px rgba(140,200,255,0.4);
+}
+
+.tagline {
+  font-size: clamp(10px, 1.4vw, 15px);
+  letter-spacing: 4px;
+  color: rgba(140,180,255,0.5);
+  margin-top: 20px;
+  text-transform: uppercase;
+}
+
+.bottom-wish {
+  position: absolute;
+  bottom: 24px;
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: rgba(160,200,255,0.38);
+  pointer-events: none;
+}
+
+.wish-btn {
+  position: absolute;
+  bottom: 28px;
+  right: 32px;
+  background: rgba(255,255,255,0.07);
+  border: 0.5px solid rgba(160,200,255,0.35);
+  color: rgba(200,230,255,0.85);
+  font-size: 13px;
+  letter-spacing: 1px;
+  padding: 10px 22px;
+  border-radius: 24px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background 0.2s;
+}
+.wish-btn:hover { background: rgba(255,255,255,0.14); }
+
+.wish-popup {
+  position: absolute;
+  bottom: 78px;
+  right: 32px;
+  background: rgba(6,12,40,0.92);
+  border: 0.5px solid rgba(140,180,255,0.3);
+  border-radius: 14px;
+  padding: 14px 20px;
+  color: rgba(200,230,255,0.9);
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 220px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.4s, transform 0.4s;
+  backdrop-filter: blur(10px);
+}
+.wish-popup.show { opacity: 1; transform: translateY(0); }
+
+.heart-float {
+  position: absolute;
+  pointer-events: none;
+  animation: floatUp 2s ease-out forwards;
+}
+@keyframes floatUp {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-90px) scale(0.4); }
+}
+</style>
+</head>
+<body>
+
+<div id="universe">
+  <canvas id="bg"></canvas>
+  <canvas id="three-canvas"></canvas>
+
+  <div class="overlay">
+    <div class="name-en">ASHLEY</div>
+    <div class="name-zh">童 &nbsp; 越</div>
+    <div class="tagline">her universe &nbsp;·&nbsp; her light</div>
+  </div>
+
+  <div class="bottom-wish">✦ &nbsp; 愿你所爱皆自由 &nbsp; ✦ &nbsp; 愿你所往皆星光 &nbsp; ✦</div>
+
+  <button class="wish-btn" onclick="sendWish()">✨ 许愿</button>
+  <div class="wish-popup" id="wishPop"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
+<script>
+const wishes = [
+  "愿童越星途璀璨 ✨",
+  "愿你每天都开心 🌙",
+  "愿所有期待都实现 💫",
+  "愿你的世界永远温柔 🌟",
+  "Ashley，你是独一无二的星 ⭐",
+  "愿快乐常伴你左右 🌠",
+  "你就是自己宇宙的主角 🪐",
+];
+let wishIdx = 0;
+
+function sendWish() {
+  const pop = document.getElementById('wishPop');
+  pop.textContent = wishes[wishIdx % wishes.length];
+  wishIdx++;
+  pop.classList.add('show');
+  spawnParticles();
+  setTimeout(() => pop.classList.remove('show'), 3000);
+}
+
+function spawnParticles() {
+  const uni = document.getElementById('universe');
+  const items = ['✦','★','✧','·','⊹','*'];
+  for (let i = 0; i < 8; i++) {
+    setTimeout(() => {
+      const h = document.createElement('div');
+      h.className = 'heart-float';
+      h.textContent = items[Math.floor(Math.random() * items.length)];
+      h.style.right = (28 + Math.random() * 140) + 'px';
+      h.style.bottom = '80px';
+      h.style.fontSize = (12 + Math.random() * 10) + 'px';
+      h.style.color = `hsl(${200 + Math.random() * 60}, 80%, 75%)`;
+      uni.appendChild(h);
+      setTimeout(() => h.remove(), 2100);
+    }, i * 100);
+  }
+}
+
+/* 2D 星空 */
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+const uni = document.getElementById('universe');
+
+let W, H;
+function resize2d() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize2d();
+
+const stars = Array.from({ length: 400 }, () => ({
+  x: Math.random() * W,
+  y: Math.random() * H,
+  r: Math.random() * 1.5 + 0.3,
+  twinkle: Math.random() * Math.PI * 2,
+  speed: 0.018 + Math.random() * 0.03
+}));
+
+const constNodes = [
+  [0.12,0.20],[0.17,0.30],[0.15,0.42],
+  [0.21,0.36],[0.26,0.25],[0.30,0.18],
+  [0.34,0.30],[0.29,0.42],[0.38,0.38]
+];
+const constEdges = [[0,1],[1,2],[1,3],[3,4],[4,5],[4,6],[6,7],[6,8]];
+
+const meteors = [];
+function makeMeteor() {
+  meteors.push({ x: Math.random()*W*0.85, y:0, vx:5+Math.random()*5, vy:4+Math.random()*4, life:1 });
+}
+setInterval(makeMeteor, 2000);
+
+let mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+let targetX = 0, targetY = 0;
+const overlayElement = document.querySelector('.overlay');
+
+window.addEventListener('mousemove', e => { 
+  mouse.x = e.clientX; 
+  mouse.y = e.clientY; 
+  
+  // 用于 3D 场景的视差目标值
+  targetX = (e.clientX - window.innerWidth / 2) * 0.03;
+  targetY = (e.clientY - window.innerHeight / 2) * 0.03;
+  
+  // HTML 文字浮层的反向视差偏移
+  if (overlayElement) {
+    const moveX = (e.clientX - window.innerWidth / 2) * -0.015;
+    const moveY = (e.clientY - window.innerHeight / 2) * -0.015;
+    overlayElement.style.transform = `translate(${moveX}px, ${moveY}px)`;
+  }
+});
+
+function draw2d() {
+  ctx.fillStyle = 'rgba(0,4,20,0.30)';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = 'rgba(140,190,255,0.16)';
+  ctx.lineWidth = 0.8;
+  for (const [a,b] of constEdges) {
+    ctx.beginPath();
+    ctx.moveTo(constNodes[a][0]*W, constNodes[a][1]*H);
+    ctx.lineTo(constNodes[b][0]*W, constNodes[b][1]*H);
+    ctx.stroke();
+  }
+  for (const [nx,ny] of constNodes) {
+    ctx.beginPath();
+    ctx.arc(nx*W, ny*H, 2.4, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(180,215,255,0.75)';
+    ctx.fill();
+  }
+
+  for (const s of stars) {
+    s.twinkle += s.speed;
+    const alpha = 0.35 + 0.65 * (0.5 + 0.5*Math.sin(s.twinkle));
+    s.x += (mouse.x - W/2) * 0.00035 * s.r;
+    s.y += (mouse.y - H/2) * 0.00035 * s.r;
+    if (s.x<0) s.x=W; if (s.x>W) s.x=0;
+    if (s.y<0) s.y=H; if (s.y>H) s.y=0;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(220,235,255,${alpha})`;
+    ctx.fill();
+  }
+
+  for (let i = meteors.length-1; i >= 0; i--) {
+    const m = meteors[i];
+    m.x += m.vx; m.y += m.vy; m.life -= 0.011;
+    const grad = ctx.createLinearGradient(m.x,m.y, m.x-m.vx*16, m.y-m.vy*16);
+    grad.addColorStop(0, `rgba(200,230,255,${m.life*0.9})`);
+    grad.addColorStop(1, 'rgba(200,230,255,0)');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(m.x, m.y);
+    ctx.lineTo(m.x-m.vx*16, m.y-m.vy*16);
+    ctx.stroke();
+    if (m.life<=0 || m.x>W || m.y>H) meteors.splice(i,1);
+  }
+
+  requestAnimationFrame(draw2d);
+}
+draw2d();
+
+/* Three.js 3D 粒子 */
+const threeCanvas = document.getElementById('three-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas: threeCanvas, alpha: true, antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+const scene = new THREE.Scene();
+const cam = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 500);
+cam.position.z = 58;
+
+const geo = new THREE.BufferGeometry();
+const N = 2000;
+const pos = new Float32Array(N*3);
+const cols = new Float32Array(N*3);
+for (let i = 0; i < N; i++) {
+  const r = 35 + Math.random()*85;
+  const theta = Math.random()*Math.PI*2;
+  const phi = Math.acos(2*Math.random()-1);
+  pos[i*3]   = r*Math.sin(phi)*Math.cos(theta);
+  pos[i*3+1] = r*Math.sin(phi)*Math.sin(theta);
+  pos[i*3+2] = r*Math.cos(phi);
+  const t = Math.random();
+  cols[i*3]   = 0.45+t*0.55;
+  cols[i*3+1] = 0.65+t*0.30;
+  cols[i*3+2] = 1.0;
+}
+geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+geo.setAttribute('color',    new THREE.BufferAttribute(cols,3));
+const mat = new THREE.PointsMaterial({ size:0.65, vertexColors:true, transparent:true, opacity:0.72 });
+const cloud = new THREE.Points(geo, mat);
+scene.add(cloud);
+
+function animate3d() {
+  requestAnimationFrame(animate3d);
+  cloud.rotation.y += 0.0007;
+  cloud.rotation.x += 0.0002;
+  
+  // 3D 相机平滑跟随鼠标产生视差
+  cam.position.x += (targetX - cam.position.x) * 0.05;
+  cam.position.y += (-targetY - cam.position.y) * 0.05;
+  cam.lookAt(scene.position);
+
+  renderer.render(scene, cam);
+}
+animate3d();
+
+window.addEventListener('resize', () => {
+  resize2d();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  cam.aspect = window.innerWidth/window.innerHeight;
+  cam.updateProjectionMatrix();
+});
+</script>
+</body>
+</html>
